@@ -5,48 +5,55 @@
  */
 package botmanager;
 
+import static botmanager.DickBotListener.log;
+import com.google.common.collect.ImmutableSortedSet;
 import java.io.IOException;
 import org.pircbotx.Configuration;
+import org.pircbotx.MultiBotManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
-import org.pircbotx.hooks.events.MessageEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.pircbotx.hooks.managers.ThreadedListenerManager;
 
 /**
  *
- * @author DarkGob
+ * @author Chris
  */
-public class BotManager extends ListenerAdapter<PircBotX> {
-
-	public static Logger log = LoggerFactory.getLogger(BotManager.class);
-
-	@Override
-	public void onMessage(MessageEvent event) throws Exception {
-		event.respond("GAY FARTS");
-	}
+public class BotManager {
+	
+	private static String serverName = "irc.foonetic.net";
+	private static String channelName = "#megadick";
 
 	public static void main(String[] args) throws Exception {
-		Configuration<PircBotX> dickConfig = new Configuration.Builder<>()
-				.setName("DickBot") //Set the nick of the bot. CHANGE IN YOUR CODE
-				.setRealName("DickBot")
-				.setLogin("dickBot") //login part of hostmask, eg name:login@host
+		MultiBotManager mgr = new MultiBotManager();
+		ThreadedListenerManager listenerMgr = new ThreadedListenerManager();
+
+		Configuration<PircBotX> dickConfig = config("DickBot","DickBot","DickBot",new DickBotListener());
+		PircBotX dickBot = new PircBotX(dickConfig);
+		DickBotListener dbl = new DickBotListener();
+		listenerMgr.addListener(dbl);
+		mgr.addBot(dickBot);
+		
+		Configuration<PircBotX> megadickConfig = config("MegaDICK","MegaDICK","MegaDICK",new MegaDICKListener());
+		PircBotX megaDICK = new PircBotX(megadickConfig);
+		MegaDICKListener mdBot = new MegaDICKListener();
+		listenerMgr.addListener(mdBot);
+		mgr.addBot(megaDICK);
+		
+		mgr.start();
+	}
+	
+	private static Configuration<PircBotX> config (String nick, String realName, String login, ListenerAdapter<PircBotX> listener) {
+		Configuration<PircBotX> botConfig = new Configuration.Builder<>()
+				.setName(nick) 
+				.setRealName(realName)
+				.setLogin(login) //login part of hostmask, eg name:login@host
 				.setAutoNickChange(true) //Automatically change nick when the current one is in use
-				.addListener(new BotManager()) //This class is a listener, so add it to the bots known listeners
-				.setServerHostname("irc.foonetic.net")
-				.addAutoJoinChannel("#megadick")
+				.addListener(listener) //This class is a listener, so add it to the bots known listeners
+				.setServerHostname(serverName)
+				.addAutoJoinChannel(channelName)
 				.setAutoReconnect(true)
 				.buildConfiguration();
-		//bot.connect throws various exceptions for failures
-		try {
-			PircBotX dickbot = new PircBotX(dickConfig);
-			dickbot.startBot();
-			dickbot.getUserBot().send().mode("+B");
-		} //In your code you should catch and handle each exception seperately,
-		//but here we just lump them all together for simpliciy
-		catch (IOException | IrcException ex) {
-			log.error("Failed to start bot", ex);
-		}
+		return botConfig;
 	}
 }
