@@ -28,7 +28,11 @@ public class BotManager {
 		MultiBotManager mgr = new MultiBotManager();
 		ThreadedListenerManager listenerMgr = new ThreadedListenerManager();
 
-		Configuration<PircBotX> dickConfig = config("DickBot","DickBot","DickBot",new DickBotListener());
+		Configuration<PircBotX> dickConfig = 
+				new Configuration.Builder<>(config("DickBot","DickBot","DickBot",new DickBotListener()))
+					.addListener(new GoogleSearchListener())
+					.addListener(new CalculatorListener())
+					.buildConfiguration();
 		PircBotX dickBot = new PircBotX(dickConfig);
 		DickBotListener dbl = new DickBotListener();
 		listenerMgr.addListener(dbl);

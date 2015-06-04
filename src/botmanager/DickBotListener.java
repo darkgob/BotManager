@@ -5,7 +5,7 @@
  */
 package botmanager;
 
-import java.io.IOException;
+import java.util.logging.Level;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.exception.IrcException;
@@ -25,7 +25,13 @@ public class DickBotListener extends ListenerAdapter<PircBotX> {
 
 	@Override
 	public void onMessage(MessageEvent event) throws Exception {
-		event.respond("GAY FARTS");
+		if (event.getMessage().equalsIgnoreCase("the only thing you\'re good at is go away")) {
+			event.getBot().stopBotReconnect();
+			event.getBot().sendIRC().quitServer("WHAT");
+		}
+		else {
+			event.respond("GAY FARTS");
+		}
 	}
 
 	@Override
